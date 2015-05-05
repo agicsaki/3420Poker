@@ -30,7 +30,6 @@ typedef struct {
 typedef struct {
     int wincard;
     int rank;
-    card winhand[5];
 } tiebreaker;
 
 /*-----------------------------------------------------------------------------
@@ -41,7 +40,7 @@ typedef struct {
 		Invariant: each card struct in the deck is unique ensuring we simulate
 		gameplay with a full deck of cards
 -----------------------------------------------------------------------------*/
-card deck[52];
+card* deck[52];
 
 /*-----------------------------------------------------------------------------
 	Player global variables
@@ -50,8 +49,8 @@ card deck[52];
 		Invariants: a card held by either player cannot also be contained in
 		deck, and these arrays contain the same cards on either device
 -----------------------------------------------------------------------------*/
-card player1[2];
-card player2[2];
+card* player1[2];
+card* player2[2];
 
 /*-----------------------------------------------------------------------------
 	Table global variable
@@ -61,7 +60,7 @@ card player2[2];
 		Invariants: a card laid on the table cannot also be contained in deck,
 		and this array contains the same cards on both devices
 -----------------------------------------------------------------------------*/
-card table[5];
+card* table[5];
 
 /*-----------------------------------------------------------------------------
 	Dealer global variable
@@ -84,8 +83,9 @@ unsigned int y = 0;
 void create() {
 	for(x = 1; x <= 13; x++) {
 		for(y = 0; y <=3; y++){
-			deck[12*y+x-1].value = x;
-			deck[12*y+x-1].suit = y;	
+			deck[12*y+x-1] = (card*)malloc(sizeof(card*));
+			deck[12*y+x-1]->value = x;
+			deck[12*y+x-1]->suit = y;	
 		}
 	}
 }
@@ -99,7 +99,7 @@ void shuffle()
 {
 	unsigned int i = 51;
     unsigned int j;
-    card temp;
+    card* temp;
 	srand(time(NULL));
     while (i > 0){
     	j = rand() % (i + 1);
@@ -161,7 +161,6 @@ tiebreaker pattern_match(card hand[5]) {
 	if(hand[0].value == 1 && (hand[4].value - hand[1].value == 3) && (hand[1].value == 10) && (isFlush == 1)) {
 		win.rank  = 10;
 		win.wincard = 14;
-		memcpy(win.winhand, hand, 5 * sizeof(card));
 		return win;
 	}
 	
@@ -169,7 +168,6 @@ tiebreaker pattern_match(card hand[5]) {
 	if(isStraight == 1 && isFlush == 1) {
 		win.rank  = 9;
 		win.wincard = hand[4].value;
-		memcpy(win.winhand, hand, 5 * sizeof(card));
 		return win;
 	}
 	
@@ -178,13 +176,11 @@ tiebreaker pattern_match(card hand[5]) {
 		if(foundAce) {
 			win.rank  = 6;
 			win.wincard = 14;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 		else{
 			win.rank  = 6;
 			win.wincard = hand[4].value;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 	}
@@ -193,12 +189,10 @@ tiebreaker pattern_match(card hand[5]) {
 		if(hand[0].value == 1 && (hand[4].value - hand[1].value == 3) && (hand[1].value == 10)){
 			win.rank  = 5;
 			win.wincard = 14;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 		win.rank  = 5;
 		win.wincard = hand[4].value;
-		memcpy(win.winhand, hand, 5 * sizeof(card));
 		return win;
 	}
 	
@@ -210,12 +204,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[0].value == 1){
 					win.rank  = 8;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 8;
 				win.wincard = hand[0].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else if(hand[3].value == hand[4].value){
@@ -223,12 +215,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[0].value == 1){
 					win.rank  = 7;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 7;
 				win.wincard = hand[0].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else{
@@ -236,12 +226,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[0].value == 1){
 					win.rank  = 4;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 4;
 				win.wincard = hand[0].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 		}
@@ -251,12 +239,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[2].value == 1){
 					win.rank  = 7;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 7;
 				win.wincard = hand[0].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else{
@@ -264,19 +250,16 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[0].value == 1 || hand[2].value == 1){
 					win.rank  = 3;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				if(hand[0].value < hand[2].value){
 					win.rank  = 3;
 					win.wincard = hand[2].value;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				else {
 					win.rank  = 3;
 					win.wincard = hand[0].value;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 			}
@@ -286,19 +269,16 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[0].value == 1 || hand[3].value == 1){
 				win.rank  = 3;
 				win.wincard = 14;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			if(hand[0].value < hand[3].value){
 				win.rank  = 3;
 				win.wincard = hand[3].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else{
 				win.rank  = 3;
 				win.wincard = hand[0].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 		}
@@ -307,12 +287,10 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[0].value == 1){
 				win.rank  = 2;
 				win.wincard = 14;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			win.rank  = 2;
 			win.wincard = hand[0].value;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 	}
@@ -323,12 +301,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[1].value == 1){
 					win.rank  = 8;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 8;
 				win.wincard = hand[1].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else{
@@ -336,12 +312,10 @@ tiebreaker pattern_match(card hand[5]) {
 				if(hand[1].value == 1){
 					win.rank  = 4;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 				}
 				win.rank  = 4;
 				win.wincard = hand[1].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 		}
@@ -350,19 +324,16 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[1].value == 1 || hand[3].value == 1){
 				win.rank  = 3;
 				win.wincard = 14;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			if(hand[1].value < hand[3].value){
 				win.rank  = 3;
 				win.wincard = hand[3].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			else{
 				win.rank  = 3;
 				win.wincard = hand[1].value;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 		}
@@ -371,12 +342,10 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[1].value == 1){
 				win.rank  = 2;
 				win.wincard = 14;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			win.rank  = 2;
 			win.wincard = hand[1].value;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 	}
@@ -386,12 +355,10 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[2].value == 1){
 				win.rank  = 4;
 					win.wincard = 14;
-					memcpy(win.winhand, hand, 5 * sizeof(card));
 					return win;
 			}
 			win.rank  = 4;
 			win.wincard = hand[2].value;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 		else{
@@ -399,12 +366,10 @@ tiebreaker pattern_match(card hand[5]) {
 			if(hand[2].value == 1){
 				win.rank  = 2;
 				win.wincard = 14;
-				memcpy(win.winhand, hand, 5 * sizeof(card));
 				return win;
 			}
 			win.rank  = 2;
 			win.wincard = hand[2].value;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 	}
@@ -413,24 +378,20 @@ tiebreaker pattern_match(card hand[5]) {
 		if(hand[3].value == 1){
 			win.rank  = 2;
 			win.wincard = 14;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 		win.rank  = 2;
 		win.wincard = hand[3].value;
-		memcpy(win.winhand, hand, 5 * sizeof(card));
 		return win;
 	}
 	else{
 		if(foundAce){
 			win.rank  = 1;
 			win.wincard = 14;
-			memcpy(win.winhand, hand, 5 * sizeof(card));
 			return win;
 		}
 		win.rank  = 1;
 		win.wincard = hand[5].value;
-		memcpy(win.winhand, hand, 5 * sizeof(card));
 		return win;
 	}
 	return win;
