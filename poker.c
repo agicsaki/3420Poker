@@ -415,7 +415,19 @@ tiebreaker* optimal(unsigned int n, card* inplay[7]){
 	unsigned int i=0, j=0, a;
 	card* hand[5];
 	
-	
+	//sort inplay[] in ascending order
+	for (i = 0; i < 7; ++i)
+    {
+        for (j = i + 1; j < 7; ++j)
+        {
+            if (inplay[i] > inplay[j])
+            {
+                a =  inplay[i];
+                inplay[i] = inplay[j];
+                inplay[j] = a;
+            }
+        }
+    }
 	
 	tiebreaker* best;
 	tiebreaker* temp;
