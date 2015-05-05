@@ -249,17 +249,20 @@ tiebreaker pattern_match(card hand[5]) {
 				//return 2 pair
 				if(hand[0].value == 1 || hand[2].value == 1){
 					win.rank  = 3;
-					win.wincard = 14;
+					if(hand[0].value == 1){
+						win.wincard = 1400 + hand[2].value;
+					}
+					else win.wincard = 1400 + hand[0].value;
 					return win;
 				}
 				if(hand[0].value < hand[2].value){
 					win.rank  = 3;
-					win.wincard = hand[2].value;
+					win.wincard = hand[2].value*100 + hand[0].value;
 					return win;
 				}
 				else {
 					win.rank  = 3;
-					win.wincard = hand[0].value;
+					win.wincard = hand[0].value*100 + hand[2].value;
 					return win;
 				}
 			}
@@ -268,17 +271,20 @@ tiebreaker pattern_match(card hand[5]) {
 			//return 2 pair
 			if(hand[0].value == 1 || hand[3].value == 1){
 				win.rank  = 3;
-				win.wincard = 14;
+				if(hand[0].value == 1){
+						win.wincard = 1400 + hand[3].value;
+					}
+					else win.wincard = 1400 + hand[0].value;
 				return win;
 			}
 			if(hand[0].value < hand[3].value){
 				win.rank  = 3;
-				win.wincard = hand[3].value;
+				win.wincard = hand[3].value*100 + hand[0].value;
 				return win;
 			}
 			else{
 				win.rank  = 3;
-				win.wincard = hand[0].value;
+				win.wincard = hand[0].value*100 + hand[3].value;
 				return win;
 			}
 		}
@@ -323,17 +329,20 @@ tiebreaker pattern_match(card hand[5]) {
 				//return 2 pair
 			if(hand[1].value == 1 || hand[3].value == 1){
 				win.rank  = 3;
-				win.wincard = 14;
+				if(hand[1].value == 1){
+					win.wincard = 1400 + hand[3].value;
+				}
+				else win.wincard = 1400 + hand[1].value;
 				return win;
 			}
 			if(hand[1].value < hand[3].value){
 				win.rank  = 3;
-				win.wincard = hand[3].value;
+				win.wincard = hand[3].value*100 + hand[1].value;
 				return win;
 			}
 			else{
 				win.rank  = 3;
-				win.wincard = hand[1].value;
+				win.wincard = hand[1].value*100 + hand[3].value;
 				return win;
 			}
 		}
@@ -401,6 +410,9 @@ tiebreaker pattern_match(card hand[5]) {
 tiebreaker optimal(unsigned int n, card inplay[7]){
 	unsigned int i=0, j=0, a;
 	card hand[5];
+	
+	
+	
 	tiebreaker best, temp;
 	if(n == 5) {
 		for(a = 0; a < 5; a ++){
