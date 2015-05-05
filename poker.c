@@ -413,6 +413,8 @@ tiebreaker* pattern_match(card* hand[5]) {
 //n is the number of cards that have been flipped on the table plus 2
 tiebreaker* optimal(unsigned int n, card* inplay[7]){
 	unsigned int i=0, j=0, a;
+	tiebreaker* best;
+	tiebreaker* temp;
 	card* hand[5];
 	
 	card* t;
@@ -431,8 +433,6 @@ tiebreaker* optimal(unsigned int n, card* inplay[7]){
         }
     }
 	
-	tiebreaker* best;
-	tiebreaker* temp;
 	if(n == 5) {
 		for(a = 0; a < 5; a ++){
 			hand[a] = inplay[a];
