@@ -1,29 +1,114 @@
+/*-----------------------------------------------------------------------------
+	Agi Csaki (ac2289)
+	Junia George (jag529)
+	CS 3420 Final Project
+	This file contains the AI against which a player must play poker
+-----------------------------------------------------------------------------*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
+/*-----------------------------------------------------------------------------
+	Card Struct
+		Represents a single card
+		Suit: 0-3 representing spades, diamonds, clubs, hearts
+		Value: 1-13 representing the value of the card
+-----------------------------------------------------------------------------*/
 typedef struct {
     unsigned int suit;
     unsigned int value;
 } card;
 
+/*-----------------------------------------------------------------------------
+	Tiebreaker Struct
+		Represents the outcome of a round
+		Wincard: the highest card in the hand (can hold values 2-14)
+		Rank: represents highest ranking poker hand the AI has (can hold values
+		1-10 representing each unique type of poker hand)
+-----------------------------------------------------------------------------*/
 typedef struct {
     int wincard;
     int rank;
     card winhand[5];
 } tiebreaker;
 
-unsigned int x = 0;
-unsigned int y = 0;
+/*-----------------------------------------------------------------------------
+	Deck global variable
+		Represents the deck of cards being used
+		An array with 52 elements, ordering of card structs in the array 
+		represents order of cards in the deck
+		Invariant: each card struct in the deck is unique ensuring we simulate
+		gameplay with a full deck of cards
+-----------------------------------------------------------------------------*/
 card deck[52];
+
+/*-----------------------------------------------------------------------------
+	Player global variables
+		Represent the hands of players 1 and 2
+		An array with 2 elements representing the 2 cards each player holds
+		Invariants: a card held by either player cannot also be contained in
+		deck, and these arrays contain the same cards on either device
+-----------------------------------------------------------------------------*/
 card player1[2];
 card player2[2];
+
+/*-----------------------------------------------------------------------------
+	Table global variable
+		Represents the cards played by the dealer
+		An array with 5 elements, representing the cards laid on the table by
+		the dealer
+		Invariants: a card laid on the table cannot also be contained in deck,
+		and this array contains the same cards on both devices
+-----------------------------------------------------------------------------*/
 card table[5];
 
+/*-----------------------------------------------------------------------------
+	Dealer global variable
+		Represents which player is currently the dealer
+		Can hold value 1 or 2, corresponding to either player
+-----------------------------------------------------------------------------*/
+unsigned int dealer = 1;
+
+// Dummy variables to be used later in the program
 unsigned int t = 0;
 unsigned int j = 0;
+unsigned int x = 0;
+unsigned int y = 0;
 
-unsigned int dealer = 1;
+/*-----------------------------------------------------------------------------
+	Create Function
+		Initialize a full deck of cards, enforcing the invariant that each
+		card contained in the deck is unique
+-----------------------------------------------------------------------------*/
+void create() {
+	for(x = 1; x <= 13; x++) {
+		for(y = 0; y <=3; y++){
+			deck[12*y+x-1].value = x;
+			deck[12*y+x-1].suit = y;	
+		}
+	}
+}
+
+/*-----------------------------------------------------------------------------
+	Shuffle Function
+		Shuffle the deck of cards using the Fisher-Yates shuffle
+		Maintains the invariant that the deck of cards contains 52 unique cards
+-----------------------------------------------------------------------------*/
+void shuffle()
+{
+	unsigned int i = 51;
+    unsigned int j;
+    card temp;
+	srand(time(NULL));
+    while (i > 0){
+    	j = rand() % (i + 1);
+        temp = deck[i];
+        deck[i] = deck[j];
+        deck[j] = temp;
+        i = i - 1;
+    }
+}
 
 //flop
 void flop(){
@@ -40,33 +125,6 @@ void turn(){
 //river
 void river(){
 	table[4] = deck[10];	
-}
-
-
-//create a deck of cards
-void create() {
-	for(x = 1; x <= 13; x++) {
-		for(y = 0; y <=3; y++){
-			deck[12*y+x-1].value = x;
-			deck[12*y+x-1].suit = y;	
-		}
-	}
-}
-
-//shuffle deck of cards; this is the fisher-yates shuffle (a method I found online)
-void shuffle()
-{
-	unsigned int i = 51;
-    unsigned int j;
-    card temp;
-	srand(time(NULL));
-    while (i > 0){
-    	j = rand() % (i + 1);
-        temp = deck[i];
-        deck[i] = deck[j];
-        deck[j] = temp;
-        i = i - 1;
-    }
 }
 
 //input is an array of 5 cards in order of value (where aces have a value of 1). Out put is the type of hand you have
