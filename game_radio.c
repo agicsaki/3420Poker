@@ -10,10 +10,21 @@
 #include "bsp.h"
 #include "mrfi.h"
 #include "radios/family1/mrfi_spi.h"
+#include <string.h>
 
 /* Useful #defines */
 #define RED_RECEIVE_LED 0x01
-#define GREEN_LED   0x02
+
+/* Parameterized "sleep" helper function */
+void sleep(unsigned int count) {
+	int i;
+	for (i = 0; i < 10; i++) {
+		while(count > 0) {
+			count--;
+			__no_operation();
+		}
+	}
+}
 
 /* Main function for receive application */
 void main(void) {
@@ -33,17 +44,15 @@ void main(void) {
 	MRFI_WakeUp();
 			
 	/* Attempt to turn on address filtering
-	 *   If unsuccessful, turn on both LEDs and wait forever */
+	 *   If unsuccessful wait forever */
 	status = MRFI_SetRxAddrFilter(address);	
 	MRFI_EnableRxAddrFilter();
 	if( status != 0) {
-		P1OUT = RED_RECEIVE_LED | GREEN_LED;
 		while(1);
 	}
 		
 	/* Red and green LEDs are output, green starts on */
-	P1DIR = RED_RECEIVE_LED | GREEN_LED;
-	P1OUT = GREEN_LED;
+	P1DIR = RED_RECEIVE_LED;
 	
 	/* Turn on the radio receiver */
 	MRFI_RxOn();
@@ -51,6 +60,31 @@ void main(void) {
 	/* Main loop */
 	__bis_SR_register(GIE);
 	while(1){
+		
+		mrfiPacket_t 	packet;
+
+		/* First byte of packet frame holds message length in bytes */
+		packet.frame[0] = strlen("") + 8;	/* Includes 8-byte address header */
+		
+		/* Next 8 bytes are addresses, 4 each for source and dest. */
+		packet.frame[1] = 0xC0;		/* Destination 192 - 168 - 66 - ??? */
+		packet.frame[2] = 0xA8;
+		packet.frame[3] = 0x42;
+		packet.frame[4] = 0x02;
+		
+		packet.frame[5] = 0x02;		/* Source */
+		packet.frame[6] = 0x00;
+		packet.frame[7] = 0x01;
+		packet.frame[8] = 0x02;
+		
+		/* Remaining bytes are the message/data payload */
+		strcpy( (char *) &packet.frame[9] , "" );
+
+		/* Transmit the packet over the radio */
+		MRFI_Transmit(&packet , MRFI_TX_TYPE_FORCED);
+		
+		sleep(60000);
+		
 	}
 }
 
@@ -64,21 +98,21 @@ void MRFI_RxCompleteISR(void) {
 	
 	/* Read the value of the payload and react accoringly */
 
-	if (packet.frame[9] == "fold") {
+	//if (packet.frame[9] == 'f') {
 
 		// End game, the player has folded
-	}
+	//}
 
-	if (packet.frame[9] == [0]) {
+	//if (packet.frame[9] == 'c') {
 
 		//Player did not place a bet, continue game accordingly
-	}
+	//}
 
 	/* Case that player placed a bet */
-	else {
+	//else {
 
 		//Display player's bet and continue game accordingly
-	}
+	//}
 	 
 	/* Toggle the red LED to signal that data has arrived */
 	P1OUT ^= RED_RECEIVE_LED;

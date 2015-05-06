@@ -545,37 +545,37 @@ void uart_clear_screen(void) {
 
 /*-------------------------------------------------------------------------*/
 
-void main(){
-	init_uart();	/* Setup UART (Note: Sets clock to 1 MHz) */
-	
-	uart_puts("Creating deck of cards...\n\n");
-	create();
-	
-	uart_puts("Shuffling deck of cards...\n\n");
-	shuffle();
-	
-	if(dealer == 1){
-		dealer = 2;
-		player2[0] = deck[0];
-		player2[1] = deck[2];
-		player1[0] = deck[1];
-		player1[1] = deck[3];
-	}
-	else {
-		dealer = 1;
-		player1[0] = deck[0];
-		player1[1] = deck[2];
-		player2[0] = deck[1];
-		player2[1] = deck[3];
-	}	
-	
-	
-	//bet on cards (big blind small blind)
-	
-	//flop and bet
-	
-	//turn and bet
-	
-	//river	and bet
-	
-}
+//void main(){
+//	init_uart();	/* Setup UART (Note: Sets clock to 1 MHz) */
+//	
+//	uart_puts("Creating deck of cards...\n\n");
+//	create();
+//	
+//	uart_puts("Shuffling deck of cards...\n\n");
+//	shuffle();
+//	
+//	if(dealer == 1){
+//		dealer = 2;
+//		player2[0] = deck[0];
+//		player2[1] = deck[2];
+//		player1[0] = deck[1];
+//		player1[1] = deck[3];
+//	}
+//	else {
+//		dealer = 1;
+//		player1[0] = deck[0];
+//		player1[1] = deck[2];
+//		player2[0] = deck[1];
+//		player2[1] = deck[3];
+//	}	
+//	
+//	
+//	//bet on cards (big blind small blind)
+//	
+//	//flop and bet
+//	
+//	//turn and bet
+//	
+//	//river	and bet
+//	
+//}
