@@ -197,13 +197,20 @@ void MRFI_RxCompleteISR( void ) {
 		}
 		else {
 			if (player_bets < 100) {
-				char msg[2];
-				memcpy(msg, &player_bets, 2);
+				char msg[4];
+				msg[0] = player_bets / 10;
+				msg[1] = 0;
+				msg[2] = 0;
+				msg[3] = 0;
 				transmitPacket(msg);
 			}
 			else {
-				char msg[3];
-				memcpy(msg, &player_bets, 3);
+				char msg[5];
+				msg[0] = player_bets / 100;
+				msg[1] = player_bets / 10;
+				msg[2] = 0;
+				msg[3] = 0;
+				msg[4] = 0;
 				transmitPacket(msg);
 			}
 		}

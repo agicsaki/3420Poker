@@ -110,16 +110,15 @@ void MRFI_RxCompleteISR(void) {
 	if (packet.frame[9] == 'c') {
 
 		//Player did not place a bet, continue game accordingly
-		P1OUT ^= RED_RECEIVE_LED;
 	}
 
 	/* Case that player placed a bet */
 	else {
-
 		//Display player's bet and continue game accordingly
 		int betValue;
 		int sizeOfValue = packet.frame[1];
-		if (sizeOfValue == 2) {
+		P1OUT ^= RED_RECEIVE_LED;
+		if (sizeOfValue == 4) {
 			betValue = (packet.frame[9] - '0')*10 + (packet.frame[10] - '0');
 		}
 		else {
