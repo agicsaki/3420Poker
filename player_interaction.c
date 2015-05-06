@@ -12,9 +12,7 @@
 #include "radios/family1/mrfi_spi.h"
 #include "msp430x22x4.h"
 #include <string.h>
-
-/* Useful #defines */
-#define RED_SEND_LED 		0x01
+#include <stdio.h>
 
 /* Time to wait for fold or check action to be taken */
 unsigned int LONG_THRESHOLD;
@@ -74,9 +72,6 @@ void transmitPacket( char msg[] ) {
 		/* Transmit the packet over the radio */
 		MRFI_Transmit(&packet , MRFI_TX_TYPE_FORCED);
 
-		/* Toggle red LED after transmitting */
-		P1OUT ^= RED_SEND_LED;
-
 }
 
 /*-----------------------------------------------------------------------------
@@ -112,10 +107,6 @@ void main(void) {
 	/* Turn on the radio receiver */
 	MRFI_RxOn();
 	
-	/* Set red LED to output */
-	P1DIR = RED_SEND_LED;
-	P1OUT = RED_SEND_LED;
-	
 	__bis_SR_register(GIE);
 
 	/* Set values of counters and status flags */
@@ -142,6 +133,24 @@ void main(void) {
 	while(1){
 		
 	}
+}
+
+//method to convert int to string
+void tostring(char str[], int num) {
+	int i, rem, len = 0, n;
+	n=num;
+	while(n!=0){
+		len++;
+		n/=10;
+	}
+	for(i = 0; i < len; i++) {
+		rem = num % 10;
+		num = num / 10;
+		str[len-(i+1)] = rem + '0';
+	}
+	str[len] = '0';
+	str[len+1] = '0';
+	
 }
 
 /*-----------------------------------------------------------------------------
@@ -198,20 +207,13 @@ void MRFI_RxCompleteISR( void ) {
 		else {
 			if (player_bets < 100) {
 				char msg[4];
-				msg[0] = player_bets / 10;
-				msg[1] = 0;
-				msg[2] = 0;
-				msg[3] = 0;
-				transmitPacket(msg);
+				tostring(msg, player_bets);
+				transmitPacket("hello");
 			}
 			else {
-				char msg[5];
-				msg[0] = player_bets / 100;
-				msg[1] = player_bets / 10;
-				msg[2] = 0;
-				msg[3] = 0;
-				msg[4] = 0;
-				transmitPacket(msg);
+				char msg[5] = {0,0,0,0,0};
+				tostring(msg, player_bets);
+				transmitPacket("hello");
 			}
 		}
 	}

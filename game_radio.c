@@ -13,9 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Useful #defines */
-#define RED_RECEIVE_LED 0x01
-
 /* Parameterized "sleep" helper function */
 void sleep(unsigned int count) {
 	int i;
@@ -51,11 +48,7 @@ void main(void) {
 	if( status != 0) {
 		while(1);
 	}
-		
-	/* Red and green LEDs are output, green starts on */
-	P1DIR = RED_RECEIVE_LED;
-	
-	
+
 	/* Turn on the radio receiver */
 	MRFI_RxOn();
 	
@@ -117,7 +110,6 @@ void MRFI_RxCompleteISR(void) {
 		//Display player's bet and continue game accordingly
 		int betValue;
 		int sizeOfValue = packet.frame[1];
-		P1OUT ^= RED_RECEIVE_LED;
 		if (sizeOfValue == 4) {
 			betValue = (packet.frame[9] - '0')*10 + (packet.frame[10] - '0');
 		}
