@@ -10,6 +10,7 @@
 #include "bsp.h"
 #include "mrfi.h"
 #include "radios/family1/mrfi_spi.h"
+#include <stdlib.h>
 #include <string.h>
 
 /* Useful #defines */
@@ -54,6 +55,7 @@ void main(void) {
 	/* Red and green LEDs are output, green starts on */
 	P1DIR = RED_RECEIVE_LED;
 	
+	
 	/* Turn on the radio receiver */
 	MRFI_RxOn();
 	
@@ -64,7 +66,7 @@ void main(void) {
 		mrfiPacket_t 	packet;
 
 		/* First byte of packet frame holds message length in bytes */
-		packet.frame[0] = strlen("") + 8;	/* Includes 8-byte address header */
+		packet.frame[0] = strlen("abcde") + 8;	/* Includes 8-byte address header */
 		
 		/* Next 8 bytes are addresses, 4 each for source and dest. */
 		packet.frame[1] = 0xC0;		/* Destination 192 - 168 - 66 - ??? */
@@ -78,11 +80,13 @@ void main(void) {
 		packet.frame[8] = 0x02;
 		
 		/* Remaining bytes are the message/data payload */
-		strcpy( (char *) &packet.frame[9] , "" );
+		strcpy( (char *) &packet.frame[9] , "abcde" );
 
 		/* Transmit the packet over the radio */
 		MRFI_Transmit(&packet , MRFI_TX_TYPE_FORCED);
 		
+		sleep(60000);
+		sleep(60000);
 		sleep(60000);
 		
 	}
@@ -98,22 +102,29 @@ void MRFI_RxCompleteISR(void) {
 	
 	/* Read the value of the payload and react accoringly */
 
-	//if (packet.frame[9] == 'f') {
+	if (packet.frame[9] == 'f') {
 
 		// End game, the player has folded
-	//}
+	}
 
-	//if (packet.frame[9] == 'c') {
+	if (packet.frame[9] == 'c') {
 
 		//Player did not place a bet, continue game accordingly
-	//}
+		P1OUT ^= RED_RECEIVE_LED;
+	}
 
 	/* Case that player placed a bet */
-	//else {
+	else {
 
 		//Display player's bet and continue game accordingly
-	//}
-	 
-	/* Toggle the red LED to signal that data has arrived */
-	P1OUT ^= RED_RECEIVE_LED;
+		int betValue;
+		int sizeOfValue = packet.frame[1];
+		if (sizeOfValue == 2) {
+			betValue = (packet.frame[9] - '0')*10 + (packet.frame[10] - '0');
+		}
+		else {
+			betValue = (packet.frame[9] - '0')*100 + (packet.frame[10] - '0')*10 + (packet.frame[11] - '0');
+		}
+		
+	}
 }

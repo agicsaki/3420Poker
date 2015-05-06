@@ -11,6 +11,7 @@
 #include "mrfi.h"
 #include "radios/family1/mrfi_spi.h"
 #include "msp430x22x4.h"
+#include <string.h>
 
 /* Useful #defines */
 #define RED_SEND_LED 		0x01
@@ -74,7 +75,7 @@ void transmitPacket( char msg[] ) {
 		MRFI_Transmit(&packet , MRFI_TX_TYPE_FORCED);
 
 		/* Toggle red LED after transmitting */
-		//P1OUT ^= RED_SEND_LED;
+		P1OUT ^= RED_SEND_LED;
 
 }
 
@@ -158,7 +159,8 @@ void main(void) {
 -----------------------------------------------------------------------------*/
 void MRFI_RxCompleteISR( void ) {
 	
-	P1OUT ^= RED_SEND_LED;
+	mrfiPacket_t	packet;
+	MRFI_Receive(&packet);
 
 	/* Wait for user input and send a packet based on user's actions */
 	while (consec_button_counter < LONG_THRESHOLD && check_counter < LONG_THRESHOLD) {
@@ -194,7 +196,16 @@ void MRFI_RxCompleteISR( void ) {
 			transmitPacket("check");
 		}
 		else {
-			transmitPacket("" + player_bets);
+			if (player_bets < 100) {
+				char msg[2];
+				memcpy(msg, &player_bets, 2);
+				transmitPacket(msg);
+			}
+			else {
+				char msg[3];
+				memcpy(msg, &player_bets, 3);
+				transmitPacket(msg);
+			}
 		}
 	}
 
