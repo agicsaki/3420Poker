@@ -48,11 +48,9 @@ void main(void) {
 	/* Turn on the radio receiver */
 	MRFI_RxOn();
 	
-	/* Main loop just toggles the green LED with some delay */
+	/* Main loop */
 	__bis_SR_register(GIE);
 	while(1){
-		sleep(60000);
-		P1OUT ^= GREEN_LED;
 	}
 }
 
@@ -84,15 +82,4 @@ void MRFI_RxCompleteISR(void) {
 	 
 	/* Toggle the red LED to signal that data has arrived */
 	P1OUT ^= RED_RECEIVE_LED;
-}
-
-/* Parameterized "sleep" helper function */
-void sleep(unsigned int count) {
-	int i;
-	for (i = 0; i < 10; i++) {
-		while(count > 0) {
-			count--;
-			__no_operation();
-		}
-	}
 }
