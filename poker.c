@@ -625,9 +625,6 @@ tiebreaker* inplayarray(int p, int n){
 	return optimal(n, play);
 }
 
-
-
-
 void main(){
 
 	//royal flush
@@ -679,13 +676,13 @@ void main(){
 	
 	
 	
-	init_uart();	/* Setup UART (Note: Sets clock to 1 MHz) */
-	uart_clear_screen();
+	//	init_uart();	/* Setup UART (Note: Sets clock to 1 MHz) */
+	/*uart_clear_screen();
 
 	uart_puts("Creating deck of cards...\n\n");
 	
 
-	uart_puts("Shuffling deck of cards...\n\n");
+	uart_puts("Shuffling deck of cards...\n\n"); */
 	shuffle();
 	
 	
