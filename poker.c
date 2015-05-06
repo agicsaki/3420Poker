@@ -16,9 +16,9 @@
 		Suit: 0-3 representing spades, diamonds, clubs, hearts
 		Value: 1-13 representing the value of the card
 -----------------------------------------------------------------------------*/
-typedef struct {
-    unsigned int suit;
+typedef struct {    
     unsigned int value;
+    unsigned int suit;
 } card;
 
 /*-----------------------------------------------------------------------------
@@ -41,10 +41,69 @@ typedef struct {
 		Invariant: each card struct in the deck is unique ensuring we simulate
 		gameplay with a full deck of cards
 -----------------------------------------------------------------------------*/
-card* deck[52];
+card s1 = {1, 0};
+card s2 = {2, 0};
+card s3 = {3, 0};
+card s4 = {4, 0};
+card s5 = {5, 0};
+card s6 = {6, 0};
+card s7 = {7, 0};
+card s8 = {8, 0};
+card s9 = {9, 0};
+card s10 = {10, 0};
+card s11 = {11, 0};
+card s12 = {12, 0};
+card s13 = {13, 0};
+
+card c1 = {1, 1};
+card c2 = {2, 1};
+card c3 = {3, 1};
+card c4 = {4, 1};
+card c5 = {5, 1};
+card c6 = {6, 1};
+card c7 = {7, 1};
+card c8 = {8, 1};
+card c9 = {9, 1};
+card c10 = {10, 1};
+card c11 = {11, 1};
+card c12 = {12, 1};
+card c13 = {13, 1};
+
+card d1 = {1, 2};
+card d2 = {2, 2};
+card d3 = {3, 2};
+card d4 = {4, 2};
+card d5 = {5, 2};
+card d6 = {6, 2};
+card d7 = {7, 2};
+card d8 = {8, 2};
+card d9 = {9, 2};
+card d10 = {10, 2};
+card d11 = {11, 2};
+card d12 = {12, 2};
+card d13 = {13, 2};
+
+card h1 = {1, 3};
+card h2 = {2, 3};
+card h3 = {3, 3};
+card h4 = {4, 3};
+card h5 = {5, 3};
+card h6 = {6, 3};
+card h7 = {7, 3};
+card h8 = {8, 3};
+card h9 = {9, 3};
+card h10 = {13, 3};
+card h11 = {11, 3};
+card h12 = {12, 3};
+card h13 = {13, 3};
+
+
+
+card* deck[] = {&s1, &s2, &s3, &s4, &s5, &s6, &s7, &s8, &s9, &s10, &s11, &s12, &s13, &c1, &c2, &c3, &c4, &c5, &c6, &c7, &c8, &c9, &c10, &c11, &c12, &c13, 
+	&d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11, &h12, &h13};
 
 /*-----------------------------------------------------------------------------
-	Player global variables
+	Player glo&bal variables
 		Represent the hands of players 1 and 2
 		An array with 2 elements representing the 2 cards each player holds
 		Invariants: a card held by either player cannot also be contained in
@@ -73,23 +132,87 @@ unsigned int dealer = 1;
 // Dummy variables to be used later in the program
 unsigned int t = 0;
 unsigned int j = 0;
-unsigned int x = 0;
-unsigned int y = 0;
+
+
+/*------------------------------------------------------------------------
+ * UART communication functions
+ *----------------------------------------------------------------------*/
+
+/* Initialize the UART for TX (9600, 8N1) */
+/* Settings taken from TI UART demo */ 
+void init_uart(void) {
+	BCSCTL1 = CALBC1_1MHZ;        /* Set DCO for 1 MHz */
+	DCOCTL  = CALDCO_1MHZ;
+	P3SEL = 0x30;                 /* P3->4,5 = USCI_A0 TXD/RXD */
+	UCA0CTL1 |= UCSSEL_2;         /* SMCLK */
+	UCA0BR0 = 104;                /* 1MHz 9600 */
+	UCA0BR1 = 0;                  /* 1MHz 9600 */
+	UCA0MCTL = UCBRS0;            /* Modulation UCBRSx = 1 */
+	UCA0CTL1 &= ~UCSWRST;         /* Initialize USCI state machine */
+}
+
+/* Transmit a single character over UART interface */
+void uart_putc(char c) {
+    while(!(IFG2 & UCA0TXIFG)); /* Wait for TX buffer to empty */
+    UCA0TXBUF = c;				/* Transmit character */
+}
+
+/* Transmit a nul-terminated string over UART interface */
+void uart_puts(char *str) {
+	while (*str) {
+		/* Replace newlines with \r\n carriage return */
+		if(*str == '\n') { uart_putc('\r'); }
+		uart_putc(*str++);
+	}
+}
+
+/* Clear terminal screen using VT100 commands */
+/* http://braun-home->net/michael/info/misc/VT100_commands->htm */
+void uart_clear_screen(void) {
+	uart_putc(0x1B);		/* Escape character */
+ 	uart_puts("[2J");		/* Clear screen */
+ 	uart_putc(0x1B);		/* Escape character */
+ 	uart_puts("[0;0H");		/* Move cursor to 0,0 */
+}
+
+/*-------------------------------------------------------------------------*/
+
+
+void tostring(char str[], int num)
+{
+    int i, rem, len = 4, n;
+ 
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
 
 /*-----------------------------------------------------------------------------
 	Create Function
 		Initialize a full deck of cards, enforcing the invariant that each
 		card contained in the deck is unique
 -----------------------------------------------------------------------------*/
-void create() {
+/*void create() {
+	char val[4];
+	unsigned int x = 0;
+	unsigned int y = 0;
 	for(x = 1; x <= 13; x++) {
 		for(y = 0; y <=3; y++){
-			deck[12*y+x-1] = (card*)malloc(sizeof(card*));
+			//deck[12*y+x-1] = (card*) malloc(sizeof(card));
 			deck[12*y+x-1]->value = x;
 			deck[12*y+x-1]->suit = y;	
+			tostring(val, x);
+			uart_puts(val);
+			uart_puts(",");
+			tostring(val, y);
+			uart_puts(val);
 		}
 	}
-}
+}*/
 
 /*-----------------------------------------------------------------------------
 	Shuffle Function
@@ -412,7 +535,7 @@ tiebreaker* pattern_match(card* hand[5]) {
 
 //n is the number of cards that have been flipped on the table plus 2
 tiebreaker* optimal(unsigned int n, card* inplay[7]){
-	unsigned int i=0, j=0, a;
+	unsigned int i=0, j=0, a, x, y;
 	tiebreaker* best;
 	tiebreaker* temp;
 	card* hand[5];
@@ -502,59 +625,234 @@ tiebreaker* inplayarray(int p, int n){
 	return optimal(n, play);
 }
 
-/*------------------------------------------------------------------------
- * UART communication functions
- *----------------------------------------------------------------------*/
 
-/* Initialize the UART for TX (9600, 8N1) */
-/* Settings taken from TI UART demo */ 
-void init_uart(void) {
-	BCSCTL1 = CALBC1_1MHZ;        /* Set DCO for 1 MHz */
-	DCOCTL  = CALDCO_1MHZ;
-	P3SEL = 0x30;                 /* P3->4,5 = USCI_A0 TXD/RXD */
-	UCA0CTL1 |= UCSSEL_2;         /* SMCLK */
-	UCA0BR0 = 104;                /* 1MHz 9600 */
-	UCA0BR1 = 0;                  /* 1MHz 9600 */
-	UCA0MCTL = UCBRS0;            /* Modulation UCBRSx = 1 */
-	UCA0CTL1 &= ~UCSWRST;         /* Initialize USCI state machine */
-}
 
-/* Transmit a single character over UART interface */
-void uart_putc(char c) {
-    while(!(IFG2 & UCA0TXIFG)); /* Wait for TX buffer to empty */
-    UCA0TXBUF = c;				/* Transmit character */
-}
-
-/* Transmit a nul-terminated string over UART interface */
-void uart_puts(char *str) {
-	while (*str) {
-		/* Replace newlines with \r\n carriage return */
-		if(*str == '\n') { uart_putc('\r'); }
-		uart_putc(*str++);
-	}
-}
-
-/* Clear terminal screen using VT100 commands */
-/* http://braun-home->net/michael/info/misc/VT100_commands->htm */
-void uart_clear_screen(void) {
-	uart_putc(0x1B);		/* Escape character */
- 	uart_puts("[2J");		/* Clear screen */
- 	uart_putc(0x1B);		/* Escape character */
- 	uart_puts("[0;0H");		/* Move cursor to 0,0 */
-}
-
-/*-------------------------------------------------------------------------*/
 
 void main(){
+
+	//royal flush
+	card* rflush[] = {&s1, &s10, &s11, &s12, &s13};
+	
+	//straight flush
+	card* sflush[] = {&s2, &s3, &s4, &s5, &s6};
+	
+	//4ofKind
+	card* early4[] = {&s2, &d2, &h2, &c2, &s6};
+	card* late4[] = {&s2, &d9, &h9, &c9, &s9};
+	
+	//full house
+	card* latef[] = {&s2, &d2, &h6, &c6, &s6};
+	card* earlyf[] = {&s2, &d2, &h2, &c9, &s9};
+	
+	//flush
+	card* flush[] = {&s1, &s4, &s5, &s9, &s13}; 
+	
+	//straight
+	card* straight[] = {&s2, &d3, &h4, &s5, &d6};
+	
+	//3ofKind
+	card* late3[] = {&s2, &d2, &h6, &c6, &s6};
+	card* mid3[] = {&s2, &d6, &h6, &c6, &s12};
+	card* early3[] = {&s2, &d2, &h2, &c9, &s12};
+	
+	//2pr
+	card* tp1[] = {&s2, &d2, &h6, &c6, &s11};
+	card* tp2[] = {&s1, &d2, &h2, &c9, &s9};
+	card* tp3[] = {&s2, &d2, &h6, &c9, &s9};
+	
+	//1pr
+	card* op1[] = {&s2, &d2, &h6, &c9, &s11};
+	card* op2[] = {&s1, &d2, &h2, &c9, &s11};
+	card* op3[] = {&s2, &d3, &h6, &c6, &s9};
+	card* op4[] = {&s1, &d2, &h6, &c9, &s9};
+	
+	//high card
+	card* hcace[] = {&d1, &h4, &c5, &c9, &s13}; 
+	card* hc[] = {&d2, &h4, &c5, &c9, &s13}; 
+	
+	
+	tiebreaker* l;
+	
+	char val[4];
+	unsigned int x;
+	WDTCTL = WDTPW + WDTHOLD;			// Stop WDT
+	
+	
+	
 	init_uart();	/* Setup UART (Note: Sets clock to 1 MHz) */
-	
+	uart_clear_screen();
+
 	uart_puts("Creating deck of cards...\n\n");
-	create();
 	
+
 	uart_puts("Shuffling deck of cards...\n\n");
 	shuffle();
 	
-	if(dealer == 1){
+	
+	l = pattern_match(rflush);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(sflush);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(early4);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(late4);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(earlyf);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(latef);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(flush);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(straight);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(late3);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(mid3);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(early3);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(tp1);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(tp2);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(tp3);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(op1);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(op2);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(op3);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(op4);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	l = pattern_match(hcace);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n"); 
+	
+	l = pattern_match(hc);
+	tostring(val, l->rank);
+	printf(val);
+	printf(", ");
+	tostring(val, l->wincard);
+	printf(val);
+	printf("\n\n");
+	
+	
+	
+	
+	/*if(dealer == 1){
 		dealer = 2;
 		player2[0] = deck[0];
 		player2[1] = deck[2];
@@ -567,7 +865,7 @@ void main(){
 		player1[1] = deck[2];
 		player2[0] = deck[1];
 		player2[1] = deck[3];
-	}	
+	}	*/
 	
 	
 	//bet on cards (big blind small blind)
@@ -577,5 +875,6 @@ void main(){
 	//turn and bet
 	
 	//river	and bet
+	
 	
 }
